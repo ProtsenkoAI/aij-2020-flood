@@ -1,0 +1,29 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+pandas = "*"
+geopandas = "*"
+numpy = "*"
+jupyterlab = "*"
+matplotlib = "*"
+seaborn = "*"
+lightgbm = "*"
+sklearn = "*"
+pipenv = "*"
+proj = "*"
+geoplot = "*"
+tqdm = "*"
+ipywidgets = "*"
+jupyter = "*"
+shapely = "*"
+siphon = "*"
+xarray = "*"
+netcdf4 = "*"
+
+[requires]
+python_version = "3.8"
