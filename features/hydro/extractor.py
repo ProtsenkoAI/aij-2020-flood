@@ -21,14 +21,14 @@ class Extractor:
         return funcs.lags(df, self.lag_days)
 
     def diff_features(self, df):
-        diff_lags = funcs.calc_diff_lags(df, self.diff_lag_days)
-        diff_stats = funcs.calc_diff_stats(diff_lags, self.diff_funcs)
+        diff_lags = funcs.diff_lags(df, self.diff_lag_days)
+        diff_stats = funcs.diff_stats(diff_lags, self.diff_funcs)
 
         diff_features = pd.concat([diff_lags, diff_stats], axis=1)
         return diff_features
 
     def doy_stats(self, df):
-        return funcs.calc_past_years_stats(df, self.past_years_funcs)
+        return funcs.past_years_stats(df, self.past_years_funcs)
 
 
 
