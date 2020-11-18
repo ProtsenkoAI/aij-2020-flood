@@ -2,7 +2,11 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/features/hydro" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aij_flood/features/hydro" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aij_flood/research_notebooks" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aij_flood/features" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aij_flood/features/meteo" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/aij_flood" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
