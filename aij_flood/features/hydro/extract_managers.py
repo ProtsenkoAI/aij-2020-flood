@@ -3,17 +3,15 @@ import pandas as pd
 
 
 class ExtractManager:
-    def __init__(self, water_levels: pd.DataFrame, hydro_coords: pd.DataFrame, extractor: Extractor):
-        self.water_levels = water_levels
+    def __init__(self, hydro_coords: pd.DataFrame, extractor: Extractor):
         self.hydro_coords = hydro_coords
         self.extractor = extractor
 
-    def extract(self):
-        df = self.water_levels
-        levels_stats = self.extractor.levels_stats(df)
-        lags = self.extractor.lags(df)
-        diff_features = self.extractor.diff_features(df)
-        doy_stats = self.extractor.doy_stats(df)
+    def extract(self, water_levels):
+        levels_stats = self.extractor.levels_stats(water_levels)
+        lags = self.extractor.lags(water_levels)
+        diff_features = self.extractor.diff_features(water_levels)
+        doy_stats = self.extractor.doy_stats(water_levels)
 
         extracted_features = [levels_stats, lags, diff_features, doy_stats]
         all_features = self._unite_features(extracted_features)
@@ -34,35 +32,36 @@ class ExtractManager:
 
 
 class LastDayExtractManager(ExtractManager):
-    def __init__(self, water_levels, hydro_coords, extractor, days_usage_config):
+    def __init__(self, hydro_coords, extractor, days_usage_config):
         """
         check ExtractManager docs
         :param days_usage_config: mapping with keys ("lags", "diff", "levels_stat", "doy")
         and values containing int. Values'll be used to filter water_levels by last *value* days
         before extracting features to optimize process.
         """
-        super().__init__(water_levels, hydro_coords, extractor)
+        super().__init__(hydro_coords, extractor)
         self.days_usage_config = days_usage_config
 
-    def extract(self):
-        levels_stats = self._levels_stats()
-        lags = self._lags()
-        diff_features = self._diff_features()
-        doy_stats = self._doy_stats()
+    def extract(self, water_levels):
+        levels_stats = self._levels_stats(water_levels)
+        lags = self._lags(water_levels)
+        diff_features = self._diff_features(water_levels)
+        doy_stats = self._doy_stats(water_levels)
+
         extracted_features = [levels_stats, lags, diff_features, doy_stats]
         extracted_features_last_date = self._keep_last_date(extracted_features)
 
         df_all_features = self._unite_features(extracted_features_last_date)
         return df_all_features
 
-    def get_filtered_levels(self, usage_config_key):
+    def get_filtered_levels(self, water_levels, usage_config_key):
         days_needed = self.days_usage_config[usage_config_key]
-        filtered_levels = self.filter_df_latest_n_days(self.water_levels, days_needed)
+        filtered_levels = self.filter_df_latest_n_days(water_levels, days_needed)
         return filtered_levels
 
     def filter_df_latest_n_days(self, df, n):
         if n is None:
-            return self.water_levels
+            return df
 
         dates = df.reset_index()["date"]
         last_n_uniq_dates = sorted(dates.unique())[-n:]
@@ -70,20 +69,20 @@ class LastDayExtractManager(ExtractManager):
         mask_last_n_dates = dates.isin(last_n_uniq_dates).values
         return df[mask_last_n_dates]
 
-    def _levels_stats(self):
-        stats_levels = self.get_filtered_levels("levels_stat")
+    def _levels_stats(self, water_levels):
+        stats_levels = self.get_filtered_levels(water_levels, "levels_stat")
         return self.extractor.levels_stats(stats_levels)
 
-    def _lags(self):
-        lags_levels = self.get_filtered_levels("lags")
+    def _lags(self, water_levels):
+        lags_levels = self.get_filtered_levels(water_levels, "lags")
         return self.extractor.lags(lags_levels)
 
-    def _diff_features(self):
-        diff_levels = self.get_filtered_levels("diff")
+    def _diff_features(self, water_levels):
+        diff_levels = self.get_filtered_levels(water_levels, "diff")
         return self.extractor.diff_features(diff_levels)
 
-    def _doy_stats(self):
-        doy_levels = self.get_filtered_levels("doy")
+    def _doy_stats(self, water_levels):
+        doy_levels = self.get_filtered_levels(water_levels, "doy")
         return self.extractor.doy_stats(doy_levels)
 
     def _keep_last_date(self, dfs):

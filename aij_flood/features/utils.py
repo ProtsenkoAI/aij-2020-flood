@@ -1,5 +1,23 @@
 import re
+import pickle
+import os
+
 import numpy as np
+import pandas as pd
+
+
+def save_pickle(obj, path):
+    dir_of_path = os.path.dirname(path)
+    os.makedirs(dir_of_path, exist_ok=True)
+    with open(path, "wb") as file:
+        pickle.dump(obj, file)
+
+
+def load_pickle(path):
+    with open(path, "rb") as file:
+        obj = pickle.load(file)
+    return obj
+
 
 def reduce_memory_usage(df, use_float16=False):
     """ iterate through all the columns of a dataframe and modify the data type
@@ -41,3 +59,45 @@ def reduce_memory_usage(df, use_float16=False):
     #     print('Decreased by {:.1f}%'.format(100 * (start_mem - end_mem) / start_mem))
 
     return df
+
+
+def roll_shift_agg(grouped, func, lag, winsize, station_col_name="id"):
+    shifted_grouped = grouped.shift(lag).groupby(station_col_name)
+
+    print("start extracting")
+    feature = shifted_grouped.rolling(winsize, min_periods=1).agg(func)
+    print("end!")
+
+    feature = _drop_redundant_agg_indexes(feature)
+    return feature
+
+
+def _drop_redundant_agg_indexes(df):
+    df.index = df.index.droplevel(0)  # agg creates second id col
+    return df
+
+
+# def _rename_first_col(df, new_name):
+#     old_name = df.columns[0]
+#     new_name = f"{old_name}_" + new_name
+#
+#     return df.rename(columns={old_name: new_name})
+
+
+def fill_missing_dates(df, fill_val=np.nan):
+    dates = df.index.get_level_values(1)
+    ids = df.index.get_level_values(0)
+    min_date, max_date = dates.min(), dates.max()
+    all_dates = pd.date_range(min_date, max_date, name="date")
+
+    new_index = pd.MultiIndex.from_product([ids.unique(), all_dates])
+    df = df.reindex(new_index, fill_value=fill_val)
+    return df
+
+
+def filter_by_substring(strings, substring):
+    def _check_substring(string):
+        return string.find(substring) != -1  # returned when wasn't found
+
+    filtered_strings = list(filter(_check_substring, strings))
+    return filtered_strings

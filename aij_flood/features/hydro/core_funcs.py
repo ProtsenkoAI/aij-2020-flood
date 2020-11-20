@@ -1,6 +1,10 @@
+# TODO: refactor
+# TODO: add namer in manager, delete it here
+
 from collections.abc import Iterable
 import pandas as pd
 import numpy as np
+from .. import utils
 
 
 def station_features(df, func, func_args_list):
@@ -19,26 +23,11 @@ def station_features(df, func, func_args_list):
     return features_df
 
 
-def roll_shift_agg(grouped, func, lag, winsize):
-    shifted_grouped = grouped.shift(lag).groupby("id")
-
-    print("start extracting")
-    feature = shifted_grouped.rolling(winsize, min_periods=1).agg(func)
-    print("end!")
-
-    feature = _drop_redundant_agg_indexes(feature)
-
-    feature_name = f"{func.__name__}_{lag}_{winsize}"
-    feature = _rename_first_col(feature, feature_name)
-
-    return feature
-
-
 def lag(grouped, lag):
     feature = grouped.shift(lag)
 
     feature_name = f"lag_{lag}"
-    feature = _rename_first_col(feature, feature_name)
+    feature = utils._rename_first_col(feature, feature_name)
 
     return feature
 
@@ -77,15 +66,3 @@ def _all_rolling_lags(roll, ndays):
         vals.append(padded_window_values)
     return np.array(vals)
 
-
-
-def _drop_redundant_agg_indexes(df):
-    df.index = df.index.droplevel(0)  # agg creates second id col
-    return df
-
-
-def _rename_first_col(df, new_name):
-    old_name = df.columns[0]
-    new_name = f"{old_name}_" + new_name
-
-    return df.rename(columns={old_name: new_name})

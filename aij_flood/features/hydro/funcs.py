@@ -1,10 +1,13 @@
 # TODO: put all realization specifications to core_funcs.py
+# TODO: refactor
+
 import pandas as pd
 from . import core_funcs
+from .. import utils
 
 
 def stats(df, config):
-    return core_funcs.station_features(df, core_funcs.roll_shift_agg, config)
+    return core_funcs.station_features(df, utils.roll_shift_agg, config)
 
 
 def lags(df, lag_days):

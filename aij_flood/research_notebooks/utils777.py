@@ -66,7 +66,6 @@ def dataframe_garbage_collection():
 
 
 def filter_by_substring(strings, substring):
-    
     def _check_substring(string):
         return string.find(substring) != -1 # returned when wasn't found
     
