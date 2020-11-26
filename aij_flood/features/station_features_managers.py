@@ -1,4 +1,5 @@
 from datetime import timedelta
+import pandas as pd
 
 
 class StationFeatureManager:
@@ -10,8 +11,11 @@ class StationFeatureManager:
         self.forecast_date = None
 
     def get_whole_past(self):
-        hydro_features = self.hydro_manager.make_past_feautes()
-        meteo_features = self.meteo_manager.make_past_features()
+        hydro_features = self.hydro_manager.make_past_features()
+        hydro_features.to_csv("hydro_features.csv")
+        meteo_features = self.meteo_manager.make_past_features() # delete self later - use it now in case of errors
+        # TODO: delete later
+        meteo_features.to_csv("meteo_features.csv")
 
         whole_past = self.data_builder.build(hydro_features, meteo_features)
         return whole_past

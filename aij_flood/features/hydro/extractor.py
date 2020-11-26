@@ -16,10 +16,20 @@ class Extractor:
             raise ValueError("extract config doesn't contain required field(s)")
 
     def levels_stats(self, df):
-        return funcs.stats(df, self.levels_stat_config)
+        print(self.levels_stat_config)
+        colnames = [f"water_levels_{feature[0].__name__}_{feature[1]}_{feature[2]}" for feature in self.levels_stat_config]
+        print("colnames", colnames)
+        levels_stats = funcs.stats(df, self.levels_stat_config)
+        levels_stats.columns = colnames
+        return levels_stats
 
     def lags(self, df):
-        return funcs.lags(df, self.lag_days)
+        print(self.lag_days)
+        colnames = [f"lag{feature}" for feature in self.lag_days]
+        colnames = ["lag1", "lag2", "lag3", "lag4", "lag5", "lag6", "lag7"]
+        lags = funcs.lags(df, self.lag_days)
+        lags.columns = colnames
+        return lags
 
     def diff_features(self, df):
         diff_lags = funcs.diff_lag(df, self.diff_lag_days)

@@ -6,42 +6,55 @@ import pandas as pd
 
 
 class MeteoExtractManager:
-    def __init__(self, preprocessed_meteo, config):
-        self.meteo = preprocessed_meteo
+    def __init__(self, config_builder):
         self.id_col = "stationNumber"
-        self.config = config
+        self.config_builder = config_builder
 
-    def agg_daily(self):
-        grouped = extr_utils.groupby_station_date(self.meteo)
+    def extract(self, meteo):
+        meteo = self.agg_daily(meteo)
+        meteo = self.fill_missing_dates(meteo)
+        features = self.stats(meteo)
+        return features
+
+    def agg_daily(self, meteo):
+        grouped = extr_utils.groupby_station_date(meteo)
         daily_mean = grouped.agg(np.nanmean)
         daily_mean.reset_index().set_index([self.id_col, "date"])
 
-        self.meteo = daily_mean
+        return daily_mean
 
-    def stats(self):
+    def stats(self, meteo):
+        config = self.config_builder.build(meteo)
+
         stats = []
-        for col, aggs_list in self.config.items():
-            col_stats = self._col_aggs(col, aggs_list)
+        for colname, aggs_list in config.items():
+            col_stats = self._col_aggs(meteo, colname, aggs_list)
             stats += col_stats
 
         stats = pd.concat(stats, axis=1)
 
-        self.add_features(stats)
+        return self.add_features(meteo, stats)
 
-    def _col_aggs(self, col, aggs_list):
+    def _col_aggs(self, meteo, colname, aggs_list):
+        col_vals = meteo[colname]
         agged_features = []
 
         for agg_params in aggs_list:
             func, lag, winsize = agg_params["func"], agg_params["lag"], agg_params["winsize"]
-            col_vals = self.meteo[col]
             agged = utils.roll_shift_agg(col_vals, func, lag, winsize, station_col_name=self.id_col)
-            agged.name = extr_utils.create_colname(col, func.__name__, lag, winsize)
+            agged.name = extr_utils.create_colname(colname, func.__name__, lag, winsize)
             agged_features.append(agged)
 
         return agged_features
 
-    def add_features(self, features):
-        self.meteo = self.meteo.merge(features, left_index=True, right_index=True)
+    def add_features(self, meteo, features):
+        return meteo.merge(features, left_index=True, right_index=True)
 
-    def get_data(self):
-        return self.meteo
+    def fill_missing_dates(self, df):
+        dates = df.reset_index()["date"]
+        ids = df.index.get_level_values("stationNumber").unique()
+        new_date_index = pd.date_range(dates.min(), dates.max(), name="date")
+
+        all_dates_index = pd.MultiIndex.from_product([ids, new_date_index])
+
+        return df.reindex(all_dates_index)

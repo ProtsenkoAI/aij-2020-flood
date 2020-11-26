@@ -62,7 +62,8 @@ def reduce_memory_usage(df, use_float16=False):
 
 
 def roll_shift_agg(grouped, func, lag, winsize, station_col_name="id"):
-    shifted_grouped = grouped.shift(lag).groupby(station_col_name)
+    shifted = grouped.shift(lag)
+    shifted_grouped = shifted.groupby(station_col_name)
 
     print("start extracting")
     feature = shifted_grouped.rolling(winsize, min_periods=1).agg(func)

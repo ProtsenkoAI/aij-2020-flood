@@ -26,11 +26,15 @@ class DirMeteoLoader:
     def _load_concat(self, filepathes):
         dfs = load_utils.read_csvs(filepathes)
         concated_df = load_utils.concat(dfs)
+
+        # df_all_dates = self.fill_missing_dates(concated_df)
         return concated_df
 
 
+
+
 class ForecastMeteoLoader:
-    def __init__(self, start_date, end_date, meteo_coords, retrieved_vars, varnames_table: pd.DataFrame, parser):
+    def __init__(self, start_date, end_date, coords_builder, retrieved_vars, varnames_table: pd.DataFrame, parser):
         """
         :param varnames_table: df with 1 col containing source name and 2 col with forecast names
         :param meteo_coords: contains id, lon and lat cols
@@ -38,7 +42,8 @@ class ForecastMeteoLoader:
 
         self.start_date = start_date
         self.end_date = end_date
-        self.meteo_coords = meteo_coords
+        self.coords_builder = coords_builder
+        self.meteo_coords = None
         self.parser = parser
 
         self.varnames_table = varnames_table
@@ -49,7 +54,8 @@ class ForecastMeteoLoader:
         self.ncss_client = self._get_remote_client()
         self.retrieved_vars = self._convert_var_names(retrieved_vars)
 
-    def load(self):
+    def load(self, needed_meteo_ids):
+        self.meteo_coords = self.coords_builder.meteo_coords(needed_meteo_ids)
         raw_forecasts = self._download_forecast()
 
         points_df = []
@@ -134,7 +140,7 @@ class ForecastMeteoLoader:
         return df[in_needed_range_mask]
 
     def _build_general_df(self, dfs):
-        ids = list(self.meteo_coords["id"])
+        ids = list(self.meteo_coords["station_id"])
 
         for station_id, df in zip(ids, dfs):
             df["id"] = station_id

@@ -8,5 +8,14 @@ class FileHydroLoader:
 
     def load(self):
         df = pd.read_csv(self.file_path, sep=";")
-        df_low_memory = utils.reduce_memory_usage(df)
-        return df_low_memory
+        df = utils.reduce_memory_usage(df)
+
+        df.rename(columns={"identifier": "id", "time": "date", "max_level": "target"}, inplace=True)
+        df["date"] = pd.to_datetime(df["date"])
+
+        df.set_index(["id", "date"], inplace=True)
+        # df = self.fill_missing_dates(df)
+        df = df.sort_index()
+
+        return df
+

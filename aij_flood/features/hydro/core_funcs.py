@@ -8,7 +8,8 @@ from .. import utils
 
 
 def station_features(df, func, func_args_list):
-    id_groups = df.groupby(by="id")
+    id_groups = df.groupby("id")
+
     features = []
 
     for func_args in func_args_list:
@@ -27,7 +28,8 @@ def lag(grouped, lag):
     feature = grouped.shift(lag)
 
     feature_name = f"lag_{lag}"
-    feature = utils._rename_first_col(feature, feature_name)
+    # feature = utils._rename_first_col(feature, feature_name)
+    feature.name = feature_name
 
     return feature
 
@@ -39,7 +41,6 @@ def diff_lag(grouped, ndays):
 
     feature_names = [f"diff_{i}" for i in range(1, ndays + 1)]
     diff_lags = differences.rolling(ndays, min_periods=1)  # need shift to get only previous values without current one
-
 
     diff_lags = _all_rolling_lags(diff_lags, ndays)
 

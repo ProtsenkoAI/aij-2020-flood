@@ -11,6 +11,7 @@ class HydroManager:
 
     def make_past_features(self):
         self.hydro = self.loader.load()
+        print(self.hydro)
         features = self.extract_manager.extract(self.hydro)
         return features
 

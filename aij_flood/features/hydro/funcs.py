@@ -38,7 +38,7 @@ def past_years_stats(df, stat_funcs):
     days = df.index.get_level_values("date").day
     station = df.index.get_level_values("id")
 
-    same_doy = df["max_level"].groupby([months, days, station])
+    same_doy = df["target"].groupby([months, days, station])
     same_doy_previous = same_doy.shift(1).groupby([months, days, station])
     expanded = same_doy_previous.expanding(min_periods=1)
 

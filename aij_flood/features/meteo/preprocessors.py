@@ -6,8 +6,7 @@ from . import extr_utils
 
 
 class DirMeteoPreprocessor:
-    def __init__(self, df, dropper, dt_builder, diff_cols):
-        self.df = df
+    def __init__(self, dropper, dt_builder, diff_cols):
 
         self.dt_builder = dt_builder
         self.dropper = dropper
@@ -15,7 +14,9 @@ class DirMeteoPreprocessor:
 
         self.dt_colname = "datetime"
 
-    def preprocess(self): # rename for "run"
+    def preprocess(self, df): # rename for "run"
+        self.df = df
+
         self.build_datetime()
         self.drop_cols()
         self.process_columns()
